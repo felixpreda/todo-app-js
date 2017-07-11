@@ -19,11 +19,7 @@ const model = {
     },
 
     deleteTodo: function(position) {
-        if (this.todos[position]) {
-            this.todos.splice(position, 1);
-        } else {
-            alert('Item inexistent');
-        }
+        this.todos.splice(position, 1);
     },
 
     toggleCompleted: function(position) {
@@ -39,20 +35,14 @@ const model = {
         const allTodos = this.todos.length;
         let completedTodos = 0;
 
-        for (const todo of this.todos) {
+        this.todos.forEach(function(todo) {
             if (todo.completed === true) {
                 completedTodos++;
             }
-        }
+        });
 
-        if (completedTodos === allTodos) {
-            for (const todo of this.todos) {
-                todo.completed = false
-            }
-        } else {
-            for (const todo of this.todos) {
-                todo.completed = true;
-            }
+        for (const todo of this.todos) {
+            todo.completed = completedTodos !== allTodos
         }
     }
 };
@@ -62,6 +52,7 @@ const actions = {
         model.toggleAll();
         view.displayTodos();
     },
+
     addTodo: function() {
         let newTodo = document.querySelector('#addTodoInput');
 
@@ -69,6 +60,7 @@ const actions = {
         newTodo.value = '';
         view.displayTodos();
     },
+
     changeTodo: function() {
         let posTodo = document.querySelector('#positionInput');
         let textTodo = document.querySelector('#changeInput');
@@ -78,6 +70,7 @@ const actions = {
         textTodo.value = '';
         view.displayTodos();
     },
+
     toggleTodo: function() {
         let posTodo = document.querySelector('#toggleInput');
 
@@ -85,11 +78,9 @@ const actions = {
         posTodo.value = '';
         view.displayTodos();
     },
-    deleteTodo: function() {
-        let delTodo = document.querySelector('#posInput');
 
-        model.deleteTodo(delTodo.valueAsNumber);
-        delTodo.value = '';
+    deleteTodo: function(id) {
+        model.deleteTodo(id);
         view.displayTodos();
     }
 }
@@ -99,16 +90,37 @@ const view = {
         const ul = document.querySelector('ul');
         ul.innerHTML = '';
 
-        for (const todo of model.todos) {
+        model.todos.forEach((todo, position) => {
             const li = document.createElement('li');
 
             if (todo.completed) {
-                li.innerHTML = `(x) ${todo.todoText}`;
+                li.innerHTML = `(x) ${todo.todoText} `;
             } else {
-                li.innerHTML = `( ) ${todo.todoText}`;
+                li.innerHTML = `( ) ${todo.todoText} `;
             }
 
+            li.id = position;
+            li.appendChild(this.createDeleteButton());
             ul.appendChild(li);
-        }
+        });
+    },
+
+    createDeleteButton: function() {
+        const del = document.createElement('button');
+        del.className = 'deleteButton';
+        del.textContent = 'Delete';
+        return del;
+    },
+
+    setupDeleteEvent: function() {
+        const ul = document.querySelector('ul');
+
+        ul.addEventListener('click', function(event) {
+            if (event.target.className === 'deleteButton') {
+                actions.deleteTodo(parseInt(event.target.parentNode.id));
+            }
+        });
     }
 };
+
+view.setupDeleteEvent();
